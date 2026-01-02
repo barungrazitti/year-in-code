@@ -66,7 +66,7 @@
 
 #### Time-Based Patterns
 - Most productive hours
-- Busiest days of the week
+- Busiest days of week
 - Peak activity months
 - Activity heatmaps
 
@@ -114,12 +114,6 @@
 - **Pagination Handling** - Automatic pagination for large datasets
 - **Error Handling** - Graceful degradation and detailed error messages
 - **Configuration-Driven** - Flexible setup via environment variables
-
-### Code Quality
-- **Zero Dependencies** - Minimal external dependencies
-- **Type Safety Ready** - Structure supports TypeScript migration
-- **Clean Code** - Well-documented functions with JSDoc comments
-- **Error Recovery** - Automatic retries and fallback mechanisms
 
 ---
 
@@ -260,134 +254,12 @@ GITHUB_ALLOWED_REPOS=frontend,backend-api
 YEAR=2025
 ```
 
----
-
-## 📊 Example Report Output
-
-### Overview Section
-```markdown
-# Combined Year-in-Review Report - 2025
-
-## Overview
-
-- Total Activities: 2,847
-- Projects Involved: 23
-```
-
-### GitLab Activity
-```markdown
-## GitLab Activity
-
-- Total Activities: 1,523
-- Projects Involved: 18
-- Merge Requests Created: 89
-- Merge Requests Assigned: 124
-- Issues Created: 156
-- Issues Assigned: 203
-- Code Reviews: 67
-```
-
-### Activity Visualization
-```markdown
-### GitLab Monthly Activity Chart
-
-January     |████████████████░░| 156
-February    |██████████████░░░░| 134
-March       |█████████████████| 167
-...
-```
-
----
-
-## 💡 Use Cases
-
-### 1. Annual Performance Review
-Generate a comprehensive report to share with your manager during performance reviews.
-
-```bash
-# Generate report for current year
-npm start
-
-# Share the generated markdown file
-# Attach to performance review document
-```
-
-### 2. Team Retrospective
-Analyze team productivity and contributions over a year.
-
-```bash
-# Generate team report
-GITLAB_TEAM_USERS=alice,bob,charlie npm start
-```
-
-### 3. Multi-Year Comparison
-Track your growth across multiple years.
-
-```bash
-# Generate reports for 3 years
-for year in 2023 2024 2025; do
-  YEAR=$year npm start
-done
-```
-
-### 4. Project-Specific Analysis
-Focus on contributions to key projects.
-
-```bash
-# Analyze specific project
-GITLAB_ALLOWED_PROJECTS=core-platform npm start
-```
-
-### 5. Portfolio Enhancement
-Showcase your coding activity for potential employers.
-
-```bash
-# Generate and add to portfolio
-YEAR=2024 npm start
-# Upload to your portfolio repository
-```
-
----
-
-## 🔍 Advanced Features
-
-### Self-Hosted GitLab
-Works with private GitLab instances:
-
+#### Self-Hosted GitLab
 ```env
 GITLAB_TOKEN=your_token
 GITLAB_USER_ID=your_username
 GITLAB_BASE_URL=https://gitlab.company.com/api/v4
 ```
-
-### GraphQL Analytics (GitHub)
-Uses GitHub's GraphQL API for enhanced contribution data:
-- Contribution calendar
-- Commit, issue, PR, and review breakdowns
-- Repository contribution metrics
-
-### Intelligent Pagination
-Automatically handles large datasets:
-- Fetches all pages automatically
-- Configurable page size
-- Timeout and retry mechanisms
-
-### Error Recovery
-Graceful handling of API issues:
-- Automatic retries on failures
-- Detailed error messages
-- Continues with partial data if possible
-
----
-
-## 📈 Performance
-
-| Scenario | Duration | Memory |
-|----------|----------|--------|
-| Single User | 10-30 seconds | < 50MB |
-| Team (4 users) | 30-60 seconds | < 200MB |
-| Large dataset (10k+ events) | 1-2 minutes | < 300MB |
-| With project filtering | 5-15 seconds | < 30MB |
 
 ---
 
@@ -440,16 +312,6 @@ npm start
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-- Built with ❤️ using Node.js
-- Powered by GitLab and GitHub APIs
-- Inspired by GitHub's contribution graphs and GitLab's user activity dashboards
-
----
 
 ---
 
