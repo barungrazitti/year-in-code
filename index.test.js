@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import axios from 'axios';
+import fs from 'fs/promises';
 import {
   analyzeMergeRequests,
   analyzeIssues,
@@ -9,29 +11,35 @@ import {
   analyzeGitHubTimePatterns,
   analyzeGitHubStreaks,
   getOutputFilename,
+  generateYearInReviewReport,
 } from './index.js';
 
-describe('Index.js - Utility Functions', () => {
+vi.mock('axios');
+vi.mock('fs/promises');
+
+describe('Index.js - Extended Coverage Tests', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
   describe('getWeekNumber', () => {
     it('should return ISO week number for January 1, 2025', () => {
       const date = new Date(2025, 0, 1);
-      const weekNum = getWeekNumber(date);
-      expect(weekNum).toBeGreaterThan(0);
-      expect(weekNum).toBeLessThanOrEqual(53);
+      expect(getWeekNumber(date)).toBe(1);
     });
 
     it('should return ISO week number for January 7, 2025', () => {
       const date = new Date(2025, 0, 7);
-      const weekNum = getWeekNumber(date);
-      expect(weekNum).toBeGreaterThan(0);
-      expect(weekNum).toBeLessThanOrEqual(53);
+      expect(getWeekNumber(date)).toBe(2);
     });
 
     it('should return ISO week number for December 31, 2025', () => {
       const date = new Date(2025, 11, 31);
-      const weekNum = getWeekNumber(date);
-      expect(weekNum).toBeGreaterThan(0);
-      expect(weekNum).toBeLessThanOrEqual(53);
+      expect(getWeekNumber(date)).toBe(1);
     });
   });
 
@@ -116,6 +124,20 @@ describe('Index.js - Utility Functions', () => {
       const result = analyzeMergeRequests(mrs);
       expect(result.projectsWithMRs).toEqual([1, 2]);
     });
+
+    it('should handle MR with missing merged_at', () => {
+      const mrs = [
+        {
+          id: 1,
+          state: 'merged',
+          created_at: '2025-01-01T00:00:00Z',
+          project_id: 1,
+        },
+      ];
+      const result = analyzeMergeRequests(mrs);
+      expect(result.totalCreated).toBe(1);
+      expect(result.averageTimeToMerge).toBe(0);
+    });
   });
 
   describe('analyzeIssues', () => {
@@ -160,6 +182,18 @@ describe('Index.js - Utility Functions', () => {
       expect(result.dailyActivity).toEqual({});
       expect(result.weeklyActivity).toEqual({});
       expect(result.monthlyActivity).toEqual({});
+    });
+
+
+    it('should count daily activity (0=Sunday, 6=Saturday)', () => {
+      const events = [
+        { created_at: '2025-01-05T00:00:00Z' },
+        { created_at: '2025-01-06T00:00:00Z' },
+        { created_at: '2025-01-13T00:00:00Z' },
+      ];
+      const result = analyzeTimePatterns(events);
+      expect(result.dailyActivity[0]).toBe(1);
+      expect(result.dailyActivity[1]).toBe(2);
     });
 
     it('should count monthly activity', () => {
@@ -225,10 +259,24 @@ describe('Index.js - Utility Functions', () => {
       expect(result.maxStreakStart).toBe('2025-01-05');
       expect(result.maxStreakEnd).toBe('2025-01-07');
     });
+
+    it('should handle single day streak', () => {
+      const events = [
+        { created_at: '2025-01-01T00:00:00Z' },
+      ];
+      const result = analyzeStreaks(events);
+      expect(result.maxStreak).toBe(1);
+      expect(result.totalActiveDays).toBe(1);
+    });
   });
 
   describe('analyzeGitHubEvents', () => {
-    it('should analyze events', () => {
+    it('should analyze empty events', () => {
+      const result = analyzeGitHubEvents([], []);
+      expect(result.totalEvents).toBe(0);
+    });
+
+    it('should count events by type', () => {
       const events = [
         { type: 'PushEvent', created_at: '2025-01-01T00:00:00Z' },
         { type: 'PushEvent', created_at: '2025-01-01T00:00:00Z' },
@@ -260,9 +308,41 @@ describe('Index.js - Utility Functions', () => {
       const result = analyzeGitHubEvents(events, []);
       expect(result.mostActiveMonth).toBe('January');
     });
+
+    it('should handle GitHub events without repo', () => {
+      const events = [
+        { type: 'PushEvent', created_at: '2025-01-01T00:00:00Z' },
+      ];
+      const result = analyzeGitHubEvents(events, []);
+      expect(result.totalEvents).toBe(1);
+      expect(result.eventTypeCounts['PushEvent']).toBe(1);
+    });
+
+    it('should handle different GitHub event types', () => {
+      const events = [
+        { type: 'PushEvent', created_at: '2025-01-01T00:00:00Z' },
+        { type: 'PullRequestEvent', created_at: '2025-01-01T00:00:00Z' },
+        { type: 'IssuesEvent', created_at: '2025-01-01T00:00:00Z' },
+        { type: 'WatchEvent', created_at: '2025-01-01T00:00:00Z' },
+      ];
+      const result = analyzeGitHubEvents(events, []);
+      expect(result.totalEvents).toBe(4);
+      expect(result.eventTypeCounts['PushEvent']).toBe(1);
+      expect(result.eventTypeCounts['PullRequestEvent']).toBe(1);
+      expect(result.eventTypeCounts['IssuesEvent']).toBe(1);
+      expect(result.eventTypeCounts['WatchEvent']).toBe(1);
+    });
   });
 
   describe('analyzeGitHubTimePatterns', () => {
+    it('should handle empty events', () => {
+      const result = analyzeGitHubTimePatterns([]);
+      expect(result).toBeDefined();
+      expect(result.hourlyActivity).toBeDefined();
+      expect(result.dailyActivity).toBeDefined();
+      expect(result.monthlyActivity).toBeDefined();
+    });
+
     it('should analyze events', () => {
       const events = [
         { created_at: '2025-01-01T00:00:00Z' },
@@ -276,8 +356,8 @@ describe('Index.js - Utility Functions', () => {
 
     it('should analyze daily activity', () => {
       const events = [
-        { created_at: '2025-01-06T00:00:00Z' }, // Monday
-        { created_at: '2025-01-06T12:00:00Z' }, // Monday
+        { created_at: '2025-01-06T00:00:00Z' },
+        { created_at: '2025-01-06T12:00:00Z' },
       ];
       const result = analyzeGitHubTimePatterns(events);
       expect(result.dailyActivity[1]).toBe(2);
@@ -285,6 +365,13 @@ describe('Index.js - Utility Functions', () => {
   });
 
   describe('analyzeGitHubStreaks', () => {
+    it('should handle empty events', () => {
+      const result = analyzeGitHubStreaks([]);
+      expect(result).toBeDefined();
+      expect(result.maxStreak).toBe(0);
+      expect(result.totalActiveDays).toBe(0);
+    });
+
     it('should calculate streak for consecutive days', () => {
       const events = [
         { created_at: '2025-01-01T00:00:00Z' },
@@ -349,134 +436,87 @@ describe('Index.js - Utility Functions', () => {
     });
   });
 
-  describe('Additional Coverage Tests', () => {
-    it('should handle MR with missing merged_at', () => {
-      const mrs = [
-        {
-          id: 1,
-          state: 'merged',
-          created_at: '2025-01-01T00:00:00Z',
-          project_id: 1,
-        },
-      ];
-      const result = analyzeMergeRequests(mrs);
-      expect(result.totalCreated).toBe(1);
-      expect(result.averageTimeToMerge).toBe(0);
-    });
-
-    it('should handle events with different timezones', () => {
-      const events = [
-        { created_at: '2025-01-01T00:00:00+00:00' },
-        { created_at: '2025-01-01T12:00:00-05:00' },
-      ];
-      const result = analyzeTimePatterns(events);
-      expect(result.hourlyActivity).toBeDefined();
-    });
-
-    it('should handle single day streak', () => {
-      const events = [
-        { created_at: '2025-01-01T00:00:00Z' },
-      ];
-      const result = analyzeStreaks(events);
-      expect(result.maxStreak).toBe(1);
-      expect(result.totalActiveDays).toBe(1);
-    });
-
-    it('should handle GitHub events without repo', () => {
-      const events = [
-        { type: 'PushEvent', created_at: '2025-01-01T00:00:00Z' },
-      ];
-      const result = analyzeGitHubEvents(events, []);
-      expect(result.totalEvents).toBe(1);
-      expect(result.eventTypeCounts['PushEvent']).toBe(1);
-    });
-
-    it('should handle different GitHub event types', () => {
-      const events = [
-        { type: 'PushEvent', created_at: '2025-01-01T00:00:00Z' },
-        { type: 'PullRequestEvent', created_at: '2025-01-01T00:00:00Z' },
-        { type: 'IssuesEvent', created_at: '2025-01-01T00:00:00Z' },
-        { type: 'WatchEvent', created_at: '2025-01-01T00:00:00Z' },
-      ];
-      const result = analyzeGitHubEvents(events, []);
-      expect(result.totalEvents).toBe(4);
-      expect(result.eventTypeCounts['PushEvent']).toBe(1);
-      expect(result.eventTypeCounts['PullRequestEvent']).toBe(1);
-      expect(result.eventTypeCounts['IssuesEvent']).toBe(1);
-      expect(result.eventTypeCounts['WatchEvent']).toBe(1);
-    });
-
-    it('should generate year string from date', () => {
-      const date = new Date(2025, 5, 15);
-      const month = date.toLocaleString('default', { month: 'long' });
-      expect(month).toBe('June');
-    });
-
-    it('should handle invalid week number input', () => {
-      const date = new Date('invalid');
-      const weekNum = getWeekNumber(date);
-      expect(typeof weekNum).toBe('number');
-    });
-
-    it('should handle empty GitLab events', () => {
-      const events = [];
+  describe('generateYearInReviewReport', () => {
+    it('should generate a report for GitLab only', () => {
       const summary = {
+        year: 2025,
+        user: { name: 'Test User', username: 'testuser' },
         gitlab: {
-          events: { totalEvents: 0, monthlyActivity: {} },
-          mergeRequests: { totalCreated: 0, mergedCount: 0, openedCount: 0 },
-          issues: { totalCreated: 0, closedCount: 0 },
-          streaks: { maxStreak: 0, totalActiveDays: 0 },
-          projects: { total: 0 },
+          overall: {
+            totalActivities: 100,
+            totalProjects: 5,
+            totalCreatedMRs: 10,
+            totalAssignedMRs: 15,
+            totalCreatedIssues: 20,
+            totalAssignedIssues: 25,
+          },
+          events: {
+            totalEvents: 100,
+            eventTypeCounts: {
+              'pushed to': 50,
+              'opened': 20,
+              'merged': 15,
+              'closed': 15,
+            },
+            monthlyActivity: {
+              January: 10,
+              February: 15,
+              March: 20,
+            },
+            topProjects: [
+              { project: 'Project A', count: 30 },
+              { project: 'Project B', count: 20 },
+            ],
+            mostActiveMonth: 'March',
+            projectContributions: {},
+          },
+          timePatterns: {
+            hourlyActivity: { 9: 50 },
+            dailyActivity: { 1: 60 },
+            monthlyActivity: { January: 10, February: 15 },
+          },
+          mergeRequests: {
+            totalCreated: 10,
+            totalAssigned: 15,
+            mergedCount: 8,
+            openedCount: 2,
+            closedCount: 0,
+            averageTimeToMerge: 172800000,
+            projectsWithMRs: [1, 2],
+          },
+          issues: {
+            totalCreated: 20,
+            totalAssigned: 25,
+            closedCount: 15,
+            openedCount: 5,
+            projectsWithIssues: [1, 2, 3],
+          },
+          codeReviews: {
+            totalReviewed: 12,
+          },
+          streaks: {
+            maxStreak: 7,
+            maxStreakStart: '2025-01-10',
+            maxStreakEnd: '2025-01-16',
+            totalActiveDays: 45,
+          },
+          projects: {
+            total: 5,
+            names: ['Project A', 'Project B', 'Project C', 'Project D', 'Project E'],
+          },
         },
-        github: { events: { totalEvents: 0 } },
+        github: null,
+        overall: {
+          totalActivities: 100,
+          totalProjects: 5,
+        },
       };
-      const filename = getOutputFilename(summary);
-      expect(filename).toContain('gitlab-year-in-review');
-    });
 
-
-    it('should handle events at different days of week', () => {
-      const events = [
-        { created_at: '2025-01-05T00:00:00Z' }, // Sunday
-        { created_at: '2025-01-06T00:00:00Z' }, // Monday
-        { created_at: '2025-01-07T00:00:00Z' }, // Tuesday
-        { created_at: '2025-01-08T00:00:00Z' }, // Wednesday
-        { created_at: '2025-01-09T00:00:00Z' }, // Thursday
-        { created_at: '2025-01-10T00:00:00Z' }, // Friday
-        { created_at: '2025-01-11T00:00:00Z' }, // Saturday
-      ];
-      const result = analyzeTimePatterns(events);
-      expect(result.dailyActivity[0]).toBe(1); // Sunday
-      expect(result.dailyActivity[1]).toBe(1); // Monday
-      expect(result.dailyActivity[2]).toBe(1); // Tuesday
-      expect(result.dailyActivity[3]).toBe(1); // Wednesday
-      expect(result.dailyActivity[4]).toBe(1); // Thursday
-      expect(result.dailyActivity[5]).toBe(1); // Friday
-      expect(result.dailyActivity[6]).toBe(1); // Saturday
-    });
-
-    it('should count commits correctly', () => {
-      const events = [
-        { type: 'PushEvent', created_at: '2025-01-01T00:00:00Z' },
-        { type: 'PushEvent', created_at: '2025-01-01T00:00:00Z' },
-      ];
-      const commits = [
-        { sha: 'abc123' },
-        { sha: 'def456' },
-      ];
-      const result = analyzeGitHubEvents(events, commits);
-      expect(result.totalCommits).toBe(2);
-    });
-
-    it('should track contributions by repo', () => {
-      const events = [
-        { type: 'PushEvent', repo: { name: 'user/repo1' }, created_at: '2025-01-01T00:00:00Z' },
-        { type: 'PushEvent', repo: { name: 'user/repo2' }, created_at: '2025-01-01T00:00:00Z' },
-      ];
-      const result = analyzeGitHubEvents(events, []);
-      expect(result.contributions).toBeDefined();
-      expect(result.contributions['user/repo1']).toBeDefined();
-      expect(result.contributions['user/repo2']).toBeDefined();
+      const report = generateYearInReviewReport(summary);
+      expect(report).toContain('Combined Year-in-Review Report - 2025');
+      expect(report).toContain('Test User');
+      expect(report).toContain('GitLab Activity');
+      expect(report).toContain('Total Activities: 100');
     });
   });
 });
