@@ -1,0 +1,28 @@
+{
+  "name": "gitlab-year-in-review",
+  "version": "1.0.0",
+  "description": "Generate a year-in-review report for your GitLab activities",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "year-in-review": "node index.js"
+  },
+  "keywords": [
+    "gitlab",
+    "year-in-review",
+    "analytics",
+    "report",
+    "productivity"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.6.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

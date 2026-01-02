@@ -1,0 +1,114 @@
+# Environment Variables
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+.env.test
+.env.backup
+.env.bak
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Node.js
+node_modules/
+npm-debug.log
+npm-debug.log.*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Logs
+logs/
+*.log
+log/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage/
+.nyc_output/
+
+# OS
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Reports (generated)
+*.md.bak
+*-year-in-review-*.md.bak
+
+# Secrets & Credentials
+*.pem
+*.key
+*.pub
+*.cert
+*.crt
+secrets/
+credentials/
+
+# API Keys & Tokens
+api-keys.txt
+tokens.txt
+credentials.json
+secrets.json
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# CI/CD
+.github/workflows/*.local.yml
+.gitlab-ci.local.yml
+
+# Build files
+dist/
+build/
+
+# System backups
+*.orig
+*.rej
+
+# Test databases
+*.sqlite
+*.sqlite3
+*.db
+
+# Backup files
+*.backup
+*.bak
+*.swp
+*~
+
+# OS specific
+.env.production.local
+.env.*.local
+EOF
