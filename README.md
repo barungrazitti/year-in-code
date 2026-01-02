@@ -451,27 +451,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 📞 Support & Feedback
-
-- **Issues**: [GitHub Issues](https://github.com/barungrazitti/year-in-code/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/barungrazitti/year-in-code/discussions)
-- **Email**: [barun.grazitti@example.com](mailto:barun.grazitti@example.com)
-
----
-
-## 🗺 Roadmap
-
-- [ ] Web-based dashboard
-- [ ] Real-time activity monitoring
-- [ ] Team comparison reports
-- [ ] Custom report templates
-- [ ] Integration with Slack/Teams notifications
-- [ ] Historical trend analysis
-- [ ] AI-powered insights and recommendations
-- [ ] Docker image and Kubernetes deployment
-- [ ] Support for additional platforms (Bitbucket, Azure DevOps)
-- [ ] Multi-language support
-
 ---
 
 <div align="center">
