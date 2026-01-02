@@ -1833,5 +1833,14 @@ export {
     getUserActivitySummary,
     generateYearInReviewReport,
     saveReportToFile,
-    runYearInReview
+    runYearInReview,
+    analyzeMergeRequests,
+    analyzeIssues,
+    analyzeTimePatterns,
+    getWeekNumber,
+    analyzeStreaks,
+    analyzeGitHubEvents,
+    analyzeGitHubTimePatterns,
+    analyzeGitHubStreaks,
+    getOutputFilename
 };

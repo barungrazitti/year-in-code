@@ -1,26 +1,35 @@
 {
-  "name": "gitlab-year-in-review",
-  "version": "1.0.0",
-  "description": "Generate a year-in-review report for your GitLab activities",
+  "name": "year-in-code",
+  "version": "1.1.0",
+  "description": "Generate comprehensive year-in-review reports for your GitLab and/or GitHub activities",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node index.js",
     "dev": "node index.js",
-    "year-in-review": "node index.js"
+    "year-in-review": "node index.js",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [
     "gitlab",
+    "github",
     "year-in-review",
     "analytics",
     "report",
-    "productivity"
+    "productivity",
+    "developer-tools"
   ],
-  "author": "Your Name",
+  "author": "Barun Grazitti",
   "license": "MIT",
   "dependencies": {
     "axios": "^1.6.0",
     "dotenv": "^16.6.1"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^1.0.0",
+    "vitest": "^1.0.0"
   },
   "engines": {
     "node": ">=14.0.0"
